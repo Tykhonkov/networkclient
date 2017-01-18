@@ -70,6 +70,7 @@ class RequestManager: Service {
         var headers = [String : String]()
         headers["Content-Type"] = "application/json"
         headers["Authorization"] = credentialsProvider?.accessToken.map { "Token token=" + $0 }
+
         return headers
     }
     var retrier = Retrier()
@@ -107,6 +108,7 @@ class RequestManager: Service {
                          method: HTTPMethod,
                          encoding: ParameterEncoding
         ) -> Observable<DataResponse<Any>> {
+
         return Observable.create({ observer -> Disposable in
             let request = Alamofire.request(
                 defaultPath + path,
@@ -151,11 +153,8 @@ class RequestManager: Service {
 
                             switch response.result {
                             case let .success(value):
-
-                                if let unwrappedValue = value as? [String : AnyObject] {
-                                    let signal: Observable<T> = responseHandler.handleResponse(unwrappedValue)
-
-                                    _ = signal.take(1).subscribe {  event in
+                                
+                                    _ = responseHandler.handleResponse(value).take(1).subscribe {  event in
                                         switch event {
                                         case .error(let error):
                                             observer.onError(error)
@@ -167,7 +166,6 @@ class RequestManager: Service {
                                             observer.onCompleted()
                                         }
                                     }
-                                }
 
                             case let .failure(error):
                                 observer.onError(error)
